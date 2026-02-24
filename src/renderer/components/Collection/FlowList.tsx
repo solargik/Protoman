@@ -150,16 +150,22 @@ const IconAction = styled(Button)`
 
 type Props = {
   collectionName: string;
+  searchText?: string;
 };
 
-const FlowList: React.FunctionComponent<Props> = ({ collectionName }) => {
+const FlowList: React.FunctionComponent<Props> = ({ collectionName, searchText }) => {
   const dispatch = useDispatch();
 
   const collection = useSelector((s: AppState) => getByKey(s.collections, collectionName));
   const allFlowNames = useSelector((s: AppState) => collection?.flows?.map(([n]) => n));
+  const normalizedSearch = (searchText || '').trim().toLowerCase();
   type flowItemMetadata = { index: Number; displayName: string; flowName: string; method: string };
   const flowGroups = (allFlowNames || []).reduce(
     (acc: { root: flowItemMetadata[]; groups: { [key: string]: flowItemMetadata[] } }, flowName, index) => {
+      if (normalizedSearch.length > 0 && !flowName.toLowerCase().includes(normalizedSearch)) {
+        return acc;
+      }
+
       const pathSepIndex = flowName.indexOf('/');
       const method = getByKey(collection?.flows, flowName)?.requestBuilder?.method || 'GET';
       if (pathSepIndex === -1) {

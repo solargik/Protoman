@@ -1,6 +1,6 @@
 import React from 'react';
-import { Layout, Collapse, Modal, Button } from 'antd';
-import { PlusOutlined, ImportOutlined } from '@ant-design/icons';
+import { Layout, Collapse, Modal, Button, Input } from 'antd';
+import { PlusOutlined, ImportOutlined, SearchOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
 import CollectionCell from './CollectionCell';
 import { useSelector, useDispatch } from 'react-redux';
@@ -62,6 +62,10 @@ const HeaderActions = styled('div')`
   align-items: center;
 `;
 
+const SearchRow = styled('div')`
+  margin-top: 10px;
+`;
+
 const Title = styled('h1')`
   user-select: none;
   margin: 0;
@@ -116,6 +120,7 @@ const CollectionSider: React.FunctionComponent<unknown> = ({}) => {
     return Number.isFinite(width) ? Math.max(COLLECTION_SIDER_MIN_WIDTH, Math.min(width, COLLECTION_SIDER_MAX_WIDTH)) : COLLECTION_SIDER_WIDTH;
   });
   const [isResizing, setIsResizing] = React.useState(false);
+  const [searchText, setSearchText] = React.useState('');
 
   const collections = useSelector((s: AppState) => s.collections);
   const openCollections = useSelector((s: AppState) => s.openCollections);
@@ -124,6 +129,19 @@ const CollectionSider: React.FunctionComponent<unknown> = ({}) => {
   const [isCreatingCol, setIsCreatingCol] = React.useState(false);
   const showGhostCol = (): void => setIsCreatingCol(true);
   const hideGhostCol = (): void => setIsCreatingCol(false);
+
+  const normalizedSearch = searchText.trim().toLowerCase();
+  const filteredCollections = React.useMemo(() => {
+    if (normalizedSearch.length === 0) return collections;
+
+    return collections.filter(([name, col]) => {
+      if (name.toLowerCase().includes(normalizedSearch)) return true;
+      return col.flows.some(([flowName]) => flowName.toLowerCase().includes(normalizedSearch));
+    });
+  }, [collections, normalizedSearch]);
+
+  const filteredCollectionNames = React.useMemo(() => filteredCollections.map(([name]) => name), [filteredCollections]);
+  const activeKeys = openCollections.filter(name => filteredCollectionNames.includes(name));
 
   function handleToggleOpen(openCollections: string[]): void {
     dispatch(toggleCollections(openCollections));
@@ -163,6 +181,15 @@ const CollectionSider: React.FunctionComponent<unknown> = ({}) => {
       <Wrapper>
         <Header>
           <Title>Collections</Title>
+          <SearchRow>
+            <Input
+              allowClear
+              value={searchText}
+              prefix={<SearchOutlined />}
+              placeholder="Search collections & requests"
+              onChange={(e): void => setSearchText(e.target.value)}
+            />
+          </SearchRow>
           <HeaderActions>
             <LinkButton type="default" icon={<ImportOutlined />} onClick={handleImport}>
               Import
@@ -173,7 +200,7 @@ const CollectionSider: React.FunctionComponent<unknown> = ({}) => {
           </HeaderActions>
         </Header>
         <LeanCollapse
-          activeKey={[...openCollections]}
+          activeKey={activeKeys}
           expandIconPosition="right"
           onChange={(k): void => {
             if (typeof k === 'string') {
@@ -184,11 +211,11 @@ const CollectionSider: React.FunctionComponent<unknown> = ({}) => {
             }
           }}
         >
-          {collections.map(([name]) => {
+          {filteredCollections.map(([name]) => {
             const header = <CollectionCell collectionName={name} />;
             return (
               <Panel key={name} header={header}>
-                <FlowList collectionName={name} />
+                <FlowList collectionName={name} searchText={searchText} />
               </Panel>
             );
           })}
