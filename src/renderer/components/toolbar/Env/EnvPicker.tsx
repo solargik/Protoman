@@ -1,5 +1,6 @@
 import React from 'react';
 import { Select, Button, Modal, Divider } from 'antd';
+import { SelectValue } from 'antd/lib/select';
 import { PlusOutlined, SettingOutlined } from '@ant-design/icons';
 import { useSelector, useDispatch } from 'react-redux';
 import { AppState } from '../../../models/AppState';
@@ -7,8 +8,23 @@ import { EnvEditor } from './EnvEditor';
 import { validateNewEnvName } from '../../../models/Env';
 import { createEnv, switchEnv } from './EnvPickerActions';
 import { selectEnvNames } from '../../../redux/store';
+import styled from 'styled-components';
 
 const ENV_MODAL_WIDTH = 800;
+
+const Wrapper = styled('div')`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+
+const SettingsButton = styled(Button)`
+  margin-left: 0;
+`;
+
+const EnvSelect = styled(Select)`
+  width: 320px;
+`;
 
 const EnvPicker: React.FunctionComponent<unknown> = ({}) => {
   const [modalVisible, setModalVisible] = React.useState(false);
@@ -32,25 +48,26 @@ const EnvPicker: React.FunctionComponent<unknown> = ({}) => {
     dispatch(createEnv(`${tmpName}${tmpNameIdx}`));
   }
 
-  function handleEnvSwitch(newEnvName: string): void {
-    dispatch(switchEnv(newEnvName));
+  function handleEnvSwitch(newEnvName: SelectValue): void {
+    if (Array.isArray(newEnvName) || typeof newEnvName === 'object') return;
+    dispatch(switchEnv(newEnvName.toString()));
   }
 
   return (
     <>
-      <Button shape="circle-outline" style={{ marginLeft: 4 }} onClick={showModal}>
-        <SettingOutlined />
-      </Button>
-      <Select
+      <Wrapper>
+        <SettingsButton shape="circle" onClick={showModal}>
+          <SettingOutlined />
+        </SettingsButton>
+      <EnvSelect
         onSelect={handleEnvSwitch}
         value={currentEnv}
-        style={{ width: 300 }}
         dropdownRender={(menu): React.ReactElement => (
           <div>
             {menu}
             <Divider style={{ margin: '4px 0' }} />
             <div
-              style={{ padding: '4px 8px', cursor: 'pointer' }}
+              style={{ padding: '8px 10px', cursor: 'pointer', fontWeight: 500 }}
               onMouseDown={(e): void => e.preventDefault()}
               onClick={createNewEnv}
             >
@@ -64,7 +81,8 @@ const EnvPicker: React.FunctionComponent<unknown> = ({}) => {
             {name}
           </Select.Option>
         ))}
-      </Select>
+      </EnvSelect>
+      </Wrapper>
       {modalVisible ? (
         <Modal visible={modalVisible} footer={null} closable={false} destroyOnClose width={ENV_MODAL_WIDTH}>
           <EnvEditor onCancel={closeModal} />

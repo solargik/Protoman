@@ -1,5 +1,6 @@
 import React from 'react';
 import { Layout, Collapse, Modal, Button } from 'antd';
+import { PlusOutlined, ImportOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
 import CollectionCell from './CollectionCell';
 import { useSelector, useDispatch } from 'react-redux';
@@ -15,44 +16,106 @@ const { Panel } = Collapse;
 
 const Sider = styled(Layout.Sider)`
   background: #fff;
-  box-shadow: 1px 0 3px -0px #aaa;
+  border-right: 1px solid #e6ecf5;
+  box-shadow: 0 8px 24px rgba(31, 41, 55, 0.06);
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100%;
+  position: relative;
+`;
+
+const ResizeHandle = styled('div')`
+  position: absolute;
+  top: 0;
+  right: -3px;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 20;
+
+  &:hover {
+    background: rgba(47, 93, 232, 0.15);
+  }
 `;
 
 const Wrapper = styled('div')`
   width: 100%;
   height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 `;
 
 const Header = styled('div')`
-  text-align: center;
+  text-align: left;
   width: 100%;
   flex: 0 0 auto;
-  padding: 16px 8px 8px 8px;
+  padding: 16px 16px 12px 16px;
+  border-bottom: 1px solid #edf2f9;
+  margin-bottom: 4px;
+`;
+
+const HeaderActions = styled('div')`
+  margin-top: 12px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
 `;
 
 const Title = styled('h1')`
   user-select: none;
   margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
 `;
 
 const LeanCollapse = styled(Collapse)`
   flex: 1 1 auto;
   overflow: auto;
-  height: 90%;
+  min-height: 0;
   border-radius: 0;
+
+  .ant-collapse-item {
+    border-bottom: 1px solid #edf2f9;
+  }
+
+  .ant-collapse-header {
+    padding: 8px 36px 8px 8px !important;
+    align-items: center;
+  }
+
+  .ant-collapse-arrow {
+    right: 12px !important;
+    left: auto !important;
+  }
+
+  .ant-collapse-content-box {
+    padding: 4px 8px 8px 8px !important;
+  }
 `;
 
 const LinkButton = styled(Button)`
-  padding: 0;
+  padding: 0 10px;
+  margin-top: 0;
+  font-weight: 500;
+  min-height: 34px;
 `;
 
-export const COLLECTION_SIDER_WIDTH = 210;
+export const COLLECTION_SIDER_WIDTH = 300;
+const COLLECTION_SIDER_MIN_WIDTH = 230;
+const COLLECTION_SIDER_MAX_WIDTH = 520;
+const COLLECTION_SIDER_WIDTH_KEY = 'protoman.collectionSiderWidth';
 
 const CollectionSider: React.FunctionComponent<unknown> = ({}) => {
   const dispatch = useDispatch();
+
+  const [siderWidth, setSiderWidth] = React.useState(() => {
+    const saved = window.localStorage.getItem(COLLECTION_SIDER_WIDTH_KEY);
+    const width = saved ? Number(saved) : COLLECTION_SIDER_WIDTH;
+    return Number.isFinite(width) ? Math.max(COLLECTION_SIDER_MIN_WIDTH, Math.min(width, COLLECTION_SIDER_MAX_WIDTH)) : COLLECTION_SIDER_WIDTH;
+  });
+  const [isResizing, setIsResizing] = React.useState(false);
 
   const collections = useSelector((s: AppState) => s.collections);
   const openCollections = useSelector((s: AppState) => s.openCollections);
@@ -70,18 +133,48 @@ const CollectionSider: React.FunctionComponent<unknown> = ({}) => {
     importCollection();
   }
 
+  React.useEffect(() => {
+    window.localStorage.setItem(COLLECTION_SIDER_WIDTH_KEY, siderWidth.toString());
+  }, [siderWidth]);
+
+  React.useEffect(() => {
+    if (!isResizing) return;
+
+    function handleMouseMove(e: MouseEvent): void {
+      const next = Math.max(COLLECTION_SIDER_MIN_WIDTH, Math.min(e.clientX, COLLECTION_SIDER_MAX_WIDTH));
+      setSiderWidth(next);
+    }
+
+    function handleMouseUp(): void {
+      setIsResizing(false);
+    }
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+
+    return (): void => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isResizing]);
+
   return (
-    <Sider width={COLLECTION_SIDER_WIDTH} theme="light">
+    <Sider width={siderWidth} theme="light">
       <Wrapper>
         <Header>
           <Title>Collections</Title>
-          <LinkButton type="link" onClick={handleImport}>
-            Import
-          </LinkButton>
+          <HeaderActions>
+            <LinkButton type="default" icon={<ImportOutlined />} onClick={handleImport}>
+              Import
+            </LinkButton>
+            <Button type="primary" icon={<PlusOutlined />} onClick={showGhostCol}>
+              New
+            </Button>
+          </HeaderActions>
         </Header>
         <LeanCollapse
           activeKey={[...openCollections]}
-          expandIcon={(): React.ReactNode => <span />}
+          expandIconPosition="right"
           onChange={(k): void => {
             if (typeof k === 'string') {
               handleToggleOpen([k]);
@@ -107,6 +200,7 @@ const CollectionSider: React.FunctionComponent<unknown> = ({}) => {
       <Modal visible={!!fmOpenCollection} footer={null} closable={false} destroyOnClose>
         {fmOpenCollection ? <ProtofileManager collectionName={fmOpenCollection} /> : null}
       </Modal>
+      <ResizeHandle onMouseDown={(): void => setIsResizing(true)} />
     </Sider>
   );
 };

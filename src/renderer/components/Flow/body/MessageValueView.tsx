@@ -43,36 +43,105 @@ function prefix(prefix: string, h: EventHandlers): EventHandlers {
 }
 
 const KEY_INPUT_WIDTH = 200;
-const SHORT_VALUE_INPUT_WIDTH = 300;
-const LONG_VALUE_INPUT_WIDTH = 500;
+const SHORT_VALUE_INPUT_WIDTH = 360;
+const LONG_VALUE_INPUT_WIDTH = 620;
 const LONG_PRIMITIVE_TYPES = ['string', 'bytes'];
 
 const IndentationBlock = styled('div')`
   display: block;
-  margin-left: 6px;
-  margin: 2px 2px 2px 10px;
-  padding: 2px;
+  margin: 4px 2px 4px 12px;
+  padding: 2px 0 2px 10px;
+  border-left: 2px solid #e8eef7;
 `;
 
 const Block = styled('div')`
   display: block;
-  margin: 4px 0;
-  padding: 2px;
+  margin: 6px 0;
+  padding: 4px 6px;
+  border-radius: 8px;
+
+  &:hover {
+    background: rgba(47, 93, 232, 0.04);
+  }
 `;
 
 const InlineBlock = styled('div')`
-  display: inline;
-  margin: 4px 0;
+  display: block;
+  margin: 6px 0;
   padding: 2px;
 `;
 
 const LightText = styled('span')`
-  color: gray;
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 500;
 `;
 
 const FieldName = styled('span')`
-  width: 50px;
+  min-width: 140px;
+  display: inline-block;
+  font-weight: 600;
+  color: #1f2937;
+  margin-right: 6px;
 `;
+
+const FieldLabelWrapper = styled('span')`
+  display: inline-flex;
+  flex-direction: column;
+  min-width: 180px;
+  margin-right: 8px;
+  vertical-align: top;
+`;
+
+const TechnicalName = styled('span')`
+  font-size: 11px;
+  color: #9ca3af;
+  font-weight: 500;
+  line-height: 1.2;
+`;
+
+const MessageType = styled('span')`
+  color: #374151;
+  font-weight: 600;
+`;
+
+const Brace = styled('span')`
+  color: #6b7280;
+  margin-left: 4px;
+`;
+
+const ActionButton = styled(Button)`
+  margin-left: 8px;
+`;
+
+const AddButtonRow = styled('div')`
+  margin-top: 6px;
+`;
+
+function toFriendlyLabel(rawName: string): string {
+  return rawName
+    .replace(/_/g, ' ')
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function shortTypeName(rawTypeName: string): string {
+  const parts = rawTypeName.split('.');
+  return parts[parts.length - 1] || rawTypeName;
+}
+
+const FriendlyFieldLabel: FunctionComponent<{ fieldName: string }> = ({ fieldName }) => {
+  const friendly = toFriendlyLabel(fieldName);
+  const showTechnical = friendly.toLowerCase() !== fieldName.toLowerCase();
+
+  return (
+    <FieldLabelWrapper>
+      <FieldName>{friendly}</FieldName>
+      {showTechnical ? <TechnicalName>{fieldName}</TechnicalName> : null}
+    </FieldLabelWrapper>
+  );
+};
 
 type MVVProps = {
   editable?: boolean;
@@ -85,7 +154,8 @@ const MessageValueView: FunctionComponent<MVVProps> = ({ editable, value, handle
 
   return (
     <InlineBlock>
-      <LightText>{type.name + ' {'}</LightText>
+      <MessageType>{shortTypeName(type.name)}</MessageType>
+      <Brace>{'{'}</Brace>
       <IndentationBlock>
         {singleFields.map(([fieldName, value]) => (
           <SingleFieldView
@@ -129,7 +199,7 @@ const MessageValueView: FunctionComponent<MVVProps> = ({ editable, value, handle
           />
         ))}
       </IndentationBlock>
-      <LightText>{'}'}</LightText>
+      <Brace>{'}'}</Brace>
     </InlineBlock>
   );
 };
@@ -216,7 +286,7 @@ type SFVProps = {
 const SingleFieldView: FunctionComponent<SFVProps> = ({ editable, fieldName, value, handlers }) => {
   return (
     <Block>
-      <FieldName>{fieldName}</FieldName>
+      <FriendlyFieldLabel fieldName={fieldName} />
       <span>: </span>
       <ProtobufValueView editable={editable} value={value} handlers={handlers} />
     </Block>
@@ -233,30 +303,26 @@ type RFVProps = {
 const RepeatedFieldView: FunctionComponent<RFVProps> = ({ editable, fieldName, values, handlers }) => {
   return (
     <Block>
-      <FieldName>{fieldName}</FieldName>
+      <FriendlyFieldLabel fieldName={fieldName} />
       <span>: </span>
       {values.map((v, idx) => (
         <IndentationBlock key={idx}>
           <ProtobufValueView editable={editable} value={v} handlers={prefix(idx.toString(), handlers)} />
           {editable ? (
-            <Button
-              shape="circle"
-              size="small"
-              danger
-              style={{ marginLeft: 4 }}
-              onClick={(): void => handlers.entryRemove(`${idx.toString()}/`)}
-            >
+            <ActionButton size="small" danger onClick={(): void => handlers.entryRemove(`${idx.toString()}/`)}>
               <DeleteOutlined />
-            </Button>
+              Remove
+            </ActionButton>
           ) : null}
         </IndentationBlock>
       ))}
       {editable ? (
-        <IndentationBlock>
-          <Button shape="circle" size="small" ghost type="primary" onClick={(): void => handlers.entryAdd('')}>
+        <AddButtonRow>
+          <Button size="small" ghost type="primary" onClick={(): void => handlers.entryAdd('')}>
             <PlusOutlined />
+            Add item
           </Button>
-        </IndentationBlock>
+        </AddButtonRow>
       ) : null}
     </Block>
   );
@@ -280,7 +346,7 @@ const OneOfFieldView: FunctionComponent<OFVProps> = ({
   const [name, value] = selectedField;
   return (
     <Block>
-      <FieldName>{fieldName}</FieldName>
+      <FriendlyFieldLabel fieldName={fieldName} />
       <span>: </span>
       {editable && (
         <Select
@@ -291,7 +357,7 @@ const OneOfFieldView: FunctionComponent<OFVProps> = ({
         >
           {fieldOptions.map((option, idx) => (
             <Select.Option key={idx} value={option}>
-              {option}
+              {toFriendlyLabel(option)}
             </Select.Option>
           ))}
         </Select>
@@ -313,37 +379,34 @@ type MFVProps = {
 const MapFieldView: FunctionComponent<MFVProps> = ({ editable, fieldName, kvPairs, handlers }) => {
   return (
     <Block>
-      <FieldName>{fieldName}</FieldName>
+      <FriendlyFieldLabel fieldName={fieldName} />
       <span>: </span>
       {kvPairs.map(([k, v], idx) => (
         <IndentationBlock key={idx}>
           <HighlightInput
             value={k}
             style={{ width: KEY_INPUT_WIDTH, marginRight: 4 }}
+            placeholder="Key"
             colored={editable}
             size="small"
             onChange={(e): void => handlers.valueChange(`${idx.toString()}/0/`, e.target.value)}
           />
           <ProtobufValueView editable={editable} value={v} handlers={prefix(`${idx.toString()}/1`, handlers)} />
           {editable ? (
-            <Button
-              shape="circle"
-              size="small"
-              danger
-              style={{ marginLeft: 4 }}
-              onClick={(): void => handlers.entryRemove(`${idx.toString()}/`)}
-            >
+            <ActionButton size="small" danger onClick={(): void => handlers.entryRemove(`${idx.toString()}/`)}>
               <DeleteOutlined />
-            </Button>
+              Remove
+            </ActionButton>
           ) : null}
         </IndentationBlock>
       ))}
       {editable ? (
-        <IndentationBlock>
-          <Button shape="circle" size="small" ghost type="primary" onClick={(): void => handlers.entryAdd('')}>
+        <AddButtonRow>
+          <Button size="small" ghost type="primary" onClick={(): void => handlers.entryAdd('')}>
             <PlusOutlined />
+            Add entry
           </Button>
-        </IndentationBlock>
+        </AddButtonRow>
       ) : null}
     </Block>
   );

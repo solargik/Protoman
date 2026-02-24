@@ -2,8 +2,14 @@ import { AppState } from '../../models/AppState';
 import { AnyAction } from 'redux';
 import { CollectionActionTypes, CollectionAction } from './CollectionActions';
 import produce from 'immer';
+import { Draft } from 'immer';
 import { getEntryByKey, getByKey } from '../../utils/utils';
 import { createDefaultCollection, createDefaultFlow } from '../../redux/store';
+
+function touchTab(draft: Draft<AppState>, collectionName: string, flowName: string): void {
+  draft.openFlowTabs = draft.openFlowTabs.filter(([cn, fn]) => !(cn === collectionName && fn === flowName));
+  draft.openFlowTabs.unshift([collectionName, flowName]);
+}
 
 export default function CollectionReducer(s: AppState, action: AnyAction): AppState {
   if (CollectionActionTypes.includes(action.type)) {
@@ -26,6 +32,13 @@ export default function CollectionReducer(s: AppState, action: AnyAction): AppSt
             if (idx >= 0) {
               draft.openCollections[idx] = a.newName;
             }
+
+            draft.openFlowTabs = draft.openFlowTabs.map(([collectionName, flowName]) => {
+              if (collectionName === a.collectionName) {
+                return [a.newName, flowName];
+              }
+              return [collectionName, flowName];
+            });
           }
         });
       case 'DELETE_COLLECTION':
@@ -34,11 +47,18 @@ export default function CollectionReducer(s: AppState, action: AnyAction): AppSt
           if (idx < 0) return draft;
 
           draft.collections.splice(idx, 1);
+
+          draft.openFlowTabs = draft.openFlowTabs.filter(([collectionName]) => collectionName !== a.collectionName);
+
           if (draft.currentCollection === a.collectionName) {
             draft.currentCollection = draft.collections[0][0];
             const flows = getByKey(draft.collections, draft.currentCollection)?.flows;
             if (!flows) return draft;
             draft.currentFlow = flows[0][0];
+          }
+
+          if (draft.openFlowTabs.length === 0) {
+            draft.openFlowTabs = [[draft.currentCollection, draft.currentFlow]];
           }
         });
       case 'TOGGLE_COLLECTIONS':
@@ -53,12 +73,14 @@ export default function CollectionReducer(s: AppState, action: AnyAction): AppSt
             flows.push([a.flowName, createDefaultFlow()]);
             draft.currentCollection = a.collectionName;
             draft.currentFlow = a.flowName;
+            touchTab(draft, a.collectionName, a.flowName);
           }
         });
       case 'SELECT_FLOW':
         return produce(s, draft => {
           draft.currentCollection = a.collectionName;
           draft.currentFlow = a.flowName;
+          touchTab(draft, a.collectionName, a.flowName);
         });
       case 'DELETE_FLOW':
         return produce(s, draft => {
@@ -68,8 +90,20 @@ export default function CollectionReducer(s: AppState, action: AnyAction): AppSt
           if (idx < 0) return draft;
 
           flows.splice(idx, 1);
+          draft.openFlowTabs = draft.openFlowTabs.filter(([collectionName, flowName]) => {
+            return !(collectionName === a.collectionName && flowName === a.flowName);
+          });
+
           if (a.flowName === draft.currentFlow && a.collectionName === draft.currentCollection) {
             draft.currentFlow = flows[0][0];
+          }
+
+          const hasCurrent = draft.openFlowTabs.some(([collectionName, flowName]) => {
+            return collectionName === draft.currentCollection && flowName === draft.currentFlow;
+          });
+
+          if (!hasCurrent) {
+            touchTab(draft, draft.currentCollection, draft.currentFlow);
           }
         });
       case 'CLONE_FLOW':
@@ -82,6 +116,7 @@ export default function CollectionReducer(s: AppState, action: AnyAction): AppSt
           flows.push([a.flowName, originalFlow]);
           draft.currentCollection = a.collectionName;
           draft.currentFlow = a.flowName;
+          touchTab(draft, a.collectionName, a.flowName);
         });
       case 'OPEN_FM':
         return produce(s, draft => {

@@ -65,6 +65,7 @@ function createDefaultAppState(): Draft<AppState> {
     collections: [[DEFAULT_COLLECTION_NAME, createDefaultCollection()]],
     currentCollection: DEFAULT_COLLECTION_NAME,
     currentFlow: DEFAULT_FLOW_NAME,
+    openFlowTabs: [[DEFAULT_COLLECTION_NAME, DEFAULT_FLOW_NAME]],
     openCollections: [DEFAULT_COLLECTION_NAME],
     fmOpenCollection: undefined,
   };
@@ -136,8 +137,36 @@ function deserialize(buf: Uint8Array): AppState {
   return JSON.parse(new TextDecoder().decode(buf));
 }
 
+function normalizeAppState(state: AppState): AppState {
+  return produce(state, draft => {
+    const hasTabs = Array.isArray((draft as Partial<AppState>).openFlowTabs) && draft.openFlowTabs.length > 0;
+
+    if (!hasTabs) {
+      draft.openFlowTabs = [[draft.currentCollection, draft.currentFlow]];
+      return;
+    }
+
+    const currentTab: [string, string] = [draft.currentCollection, draft.currentFlow];
+    const hasCurrent = draft.openFlowTabs.some(([collectionName, flowName]) => {
+      return collectionName === draft.currentCollection && flowName === draft.currentFlow;
+    });
+
+    if (!hasCurrent) {
+      draft.openFlowTabs = [currentTab, ...draft.openFlowTabs];
+      return;
+    }
+
+    draft.openFlowTabs = [
+      currentTab,
+      ...draft.openFlowTabs.filter(([collectionName, flowName]) => {
+        return !(collectionName === draft.currentCollection && flowName === draft.currentFlow);
+      }),
+    ];
+  });
+}
+
 export function makeStore(loaded: Uint8Array | null): Store {
-  const initialState = loaded ? deserialize(loaded) : createDefaultAppState();
+  const initialState = loaded ? normalizeAppState(deserialize(loaded)) : createDefaultAppState();
 
   return createStore((s, a) => AppReducer(s || initialState, a), initialState, applyMiddleware(thunk));
 }

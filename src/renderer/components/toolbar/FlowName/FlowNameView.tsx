@@ -8,18 +8,22 @@ import { selectCurrentCol } from '../../../redux/store';
 import { AppState } from '../../../models/AppState';
 
 const Title = styled('span')`
-  font-size: 16pt;
+  font-size: 22px;
+  font-weight: 700;
+  color: #111827;
   margin: 0;
 `;
 
 const TitleInput = styled(Input)`
   display: inline;
-  font-size: 14pt;
+  font-size: 18px;
+  min-width: 280px;
 `;
 
 const TitleWrapper = styled('div')`
   display: flex;
   align-items: center;
+  gap: 8px;
 `;
 
 type Props = unknown;
