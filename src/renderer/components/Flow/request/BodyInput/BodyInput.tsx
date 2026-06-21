@@ -18,13 +18,17 @@ type Props = {
 
 const BodyWrapper = styled('div')`
   display: block;
-  margin-top: 8px;
+  margin-top: 12px;
+  background: #f8faff;
+  border: 1px solid #e8eef7;
+  border-radius: 10px;
+  padding: 12px;
 `;
 
-export const MESSAGE_NAME_WIDTH = 500;
+export const MESSAGE_NAME_WIDTH = 560;
 
-export const JSON_BODY_AREA_WIDTH = 500;
-export const JSON_BODY_AREA_HEIGHT = 100;
+export const JSON_BODY_AREA_WIDTH = 560;
+export const JSON_BODY_AREA_HEIGHT = 180;
 
 const BodyInput: FunctionComponent<Props> = ({ bodyType, bodies, protoCtx, messageNames }) => {
   const dispatch = useDispatch();
@@ -53,7 +57,6 @@ const BodyInput: FunctionComponent<Props> = ({ bodyType, bodies, protoCtx, messa
           <Select
             value={bodies.protobuf && bodies.protobuf.type.name}
             onChange={onSelectRequestMsg}
-            size="small"
             style={{ width: MESSAGE_NAME_WIDTH }}
             showSearch
             filterOption={(input, option): boolean => {
@@ -77,7 +80,8 @@ const BodyInput: FunctionComponent<Props> = ({ bodyType, bodies, protoCtx, messa
           <TextArea
             value={bodies.json}
             style={{ width: JSON_BODY_AREA_WIDTH, height: JSON_BODY_AREA_HEIGHT, resize: 'none' }}
-            onChange={e => onJSONBodyChange(e)}
+            placeholder={'{\n  "key": "value"\n}'}
+            onChange={onJSONBodyChange}
           ></TextArea>
         </div>
       </>

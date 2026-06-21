@@ -8,6 +8,7 @@ import { MESSAGE_NAME_WIDTH } from '../BodyInput/BodyInput';
 import { buildProtofiles } from '../../../Collection/protofile/ProtofileManagerActions';
 import { AppState } from '../../../../models/AppState';
 import { getByKey } from '../../../../utils/utils';
+import styled from 'styled-components';
 
 type Props = {
   messageNames: ReadonlyArray<string>;
@@ -16,6 +17,18 @@ type Props = {
 };
 
 const LABEL_STYLE = { display: 'inline-block', width: 100 };
+
+const Wrapper = styled('div')`
+  background: #f8faff;
+  border: 1px solid #e8eef7;
+  border-radius: 10px;
+  padding: 12px;
+`;
+
+const ActionRow = styled('div')`
+  display: flex;
+  justify-content: flex-end;
+`;
 
 const ExpectedBodyInput: React.FunctionComponent<Props> = ({
   messageNames,
@@ -44,12 +57,11 @@ const ExpectedBodyInput: React.FunctionComponent<Props> = ({
   }
 
   return (
-    <div>
+    <Wrapper>
       <span style={LABEL_STYLE}>On [200, 300):</span>
       <Select
         value={expectedProtobufMsg}
         onChange={onSelectResponseMsg}
-        size="small"
         style={{ width: MESSAGE_NAME_WIDTH }}
         allowClear
         showSearch
@@ -70,7 +82,6 @@ const ExpectedBodyInput: React.FunctionComponent<Props> = ({
       <Select
         value={expectedProtobufMsgOnError}
         onChange={onSelectResponseMsgOnError}
-        size="small"
         style={{ width: MESSAGE_NAME_WIDTH }}
         allowClear
         showSearch
@@ -87,19 +98,17 @@ const ExpectedBodyInput: React.FunctionComponent<Props> = ({
 
       <div style={{ height: 8 }} />
 
-      <Button
-        shape="circle"
-        size="small"
-        onClick={handleRebuildProtobufModels}
-        title="Rebuild & Refresh Protobuf models"
-      >
-        <ReloadOutlined />
-      </Button>
+      <ActionRow>
+        <Button size="middle" onClick={handleRebuildProtobufModels} title="Rebuild & Refresh Protobuf models">
+          <ReloadOutlined />
+          Rebuild Models
+        </Button>
+      </ActionRow>
 
       {buildStatus === 'failure' ? (
         <Alert message={buildError?.toString() || ' '} type="error" closeText="Close" />
       ) : null}
-    </div>
+    </Wrapper>
   );
 };
 

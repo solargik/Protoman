@@ -6,6 +6,7 @@ import { sendToWindow } from './index';
 import { RequestDescriptor } from '../core/http_client/request';
 import { makeRequest } from '../core/http_client/client';
 import { ProtoCtx } from '../core/protobuf/protobuf';
+import { scanNetworkDevices } from './network_scan';
 
 export async function initializeEvents(): Promise<void> {
   const dataDir = path.join(app.getPath('userData'), DATA_FOLDER_NAME);
@@ -79,6 +80,16 @@ export async function initializeEvents(): Promise<void> {
         } catch (e) {
           event.reply(ipcChannel.IMPORT_ERROR, [e]);
         }
+      }
+    });
+
+    ipcMain.on(ipcChannel.SCAN_NETWORK_DEVICES, async event => {
+      try {
+        const devices = await scanNetworkDevices();
+        event.reply(ipcChannel.SCAN_NETWORK_DEVICES_SUCCESS, [devices]);
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        event.reply(ipcChannel.SCAN_NETWORK_DEVICES_ERROR, [msg]);
       }
     });
 

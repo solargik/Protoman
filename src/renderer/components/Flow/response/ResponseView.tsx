@@ -9,9 +9,11 @@ import { statusCodeToText } from './StatusCodes';
 const { TabPane } = Tabs;
 
 const ResponseWrapper = styled('div')`
-  padding: 16px;
+  padding: 20px;
   background-color: white;
-  border-radius: 5px;
+  border-radius: 12px;
+  border: 1px solid #e6ecf5;
+  box-shadow: 0 8px 24px rgba(31, 41, 55, 0.06);
 `;
 
 const TitleWrapper = styled(Row)`
@@ -20,20 +22,24 @@ const TitleWrapper = styled(Row)`
 
 const LeftyCol = styled(Col)`
   text-align: left;
-  font-size: 12pt;
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
 `;
 
 const RightyCol = styled(Col)`
   text-align: right;
-  font-size: 10pt;
+  font-size: 13px;
+  color: #4b5563;
 `;
 
 const PaddedTabPane = styled(TabPane)`
-  padding: 4px;
+  padding: 8px 2px;
 `;
 
 const LeftMarginSpan = styled('span')`
-  margin-left: 8px;
+  margin-left: 12px;
+  font-weight: 500;
 `;
 
 function statusCodeToColor(code: number): string {

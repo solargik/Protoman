@@ -1,7 +1,6 @@
 import { app, BrowserWindow, Menu, Rectangle, screen } from 'electron';
 import Store from 'electron-store';
 import path from 'path';
-import makeMenu from './menu';
 import { initializeEvents } from './events';
 import { checkUpdateAndNotify } from './notification';
 
@@ -31,7 +30,7 @@ async function createWindow(): Promise<void> {
     },
   });
   initializeEvents();
-  Menu.setApplicationMenu(makeMenu());
+  Menu.setApplicationMenu(null);
   window.loadFile(path.join(__dirname, 'index.html'));
 
   window.on('close', () => {

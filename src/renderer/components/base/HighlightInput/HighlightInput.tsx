@@ -20,16 +20,26 @@ const InputWrapper = styled('div')`
   margin: 0;
   padding: 0;
   width: 100%;
+  background: #fff;
+  border-radius: 8px;
 `;
 
 const FakeInputWrapper = styled('div')`
   position: absolute;
+  background: #fff;
+  border-radius: 8px;
+  pointer-events: none;
 `;
 
 const FakeInput = styled('div')`
   overflow: scroll;
   white-space: nowrap;
   border: none;
+  font-size: 14px;
+  line-height: 1.5715;
+  font-family: inherit;
+  color: #374151;
+  pointer-events: none;
   ::-webkit-scrollbar {
     display: none;
   }
@@ -37,6 +47,7 @@ const FakeInput = styled('div')`
 
 const ModInput = styled(Input)`
   background: transparent;
+  background-color: transparent !important;
   -webkit-text-fill-color: transparent;
   > span {
     -webkit-text-fill-color: gray;
@@ -52,8 +63,8 @@ const small = {
 };
 
 const medium = {
-  padding: '1px 12px',
-  top: 4,
+  padding: '5px 12px',
+  top: 0,
 };
 
 // at the moment, only for medium

@@ -5,6 +5,18 @@ import { useDispatch } from 'react-redux';
 import { deleteHeader, createHeader, changeHeaderName, changeHeaderValue } from './HeaderViewActions';
 import { COMMON_HEADER_NAMES } from './HeaderNames';
 import HighlightInput from '../../../base/HighlightInput/HighlightInput';
+import styled from 'styled-components';
+
+const Wrapper = styled('div')`
+  background: #f8faff;
+  border: 1px solid #e8eef7;
+  border-radius: 10px;
+  padding: 12px;
+`;
+
+const AddHeaderButton = styled(Button)`
+  margin-top: 4px;
+`;
 
 type Props = {
   editable?: boolean;
@@ -31,7 +43,7 @@ const HeaderView: React.FunctionComponent<Props> = ({ editable, headers }) => {
   }
 
   return (
-    <div>
+    <Wrapper>
       {headers.map(([name, value], idx) => (
         <SingleHeaderView
           key={idx}
@@ -44,11 +56,11 @@ const HeaderView: React.FunctionComponent<Props> = ({ editable, headers }) => {
         />
       ))}
       {editable ? (
-        <Button shape="circle" size="small" ghost type="primary" onClick={handleCreate} disabled={!editable}>
+        <AddHeaderButton shape="circle" size="small" ghost type="primary" onClick={handleCreate} disabled={!editable}>
           <PlusOutlined />
-        </Button>
+        </AddHeaderButton>
       ) : null}
-    </div>
+    </Wrapper>
   );
 };
 
@@ -72,7 +84,7 @@ const SingleHeaderView: React.FunctionComponent<SingleProps> = ({
   const nameOptions = COMMON_HEADER_NAMES;
 
   return (
-    <Row gutter={8} align="middle" style={{ marginBottom: 8 }}>
+    <Row gutter={10} align="middle" style={{ marginBottom: 10 }}>
       <Col span={6}>
         <AutoComplete
           style={{ width: '100%' }}

@@ -1,8 +1,15 @@
 import React from 'react';
 import styled from 'styled-components';
 import { validateCollectionName } from '../../models/Collection';
-import { Input, Form, Button, message, Popover, Divider } from 'antd';
-import { FilePptOutlined, EditOutlined, DeleteOutlined, PlusOutlined, ExportOutlined } from '@ant-design/icons';
+import { Input, Form, Button, message, Popover, Divider, Tooltip } from 'antd';
+import {
+  FilePptOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  PlusOutlined,
+  ExportOutlined,
+  EllipsisOutlined,
+} from '@ant-design/icons';
 import { prevent, getByKey } from '../../utils/utils';
 import { useSelector, useDispatch } from 'react-redux';
 import { AppState } from '../../models/AppState';
@@ -11,7 +18,40 @@ import { deleteCollection, changeCollectionName, openFM, createFlow } from './Co
 import { exportCollection } from '../../bulk/trigger';
 
 export const TableData = styled('div')`
-  padding: 4px 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  transition: background-color 0.15s ease;
+  min-height: 56px;
+
+  &:hover {
+    background-color: #f6f9ff;
+  }
+`;
+
+const HeaderRow = styled('div')`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+`;
+
+const HeaderInfo = styled('div')`
+  min-width: 0;
+  flex: 1;
+`;
+
+const Actions = styled('div')`
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+`;
+
+const IconAction = styled(Button)`
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  padding: 0;
 `;
 
 export const Separator = styled(Divider)`
@@ -19,28 +59,39 @@ export const Separator = styled(Divider)`
 `;
 
 const Title = styled('span')`
-  margin-top: 4px;
-  margin-bottom: 4px;
-  font-size: 10pt;
+  display: block;
+  margin-top: 2px;
+  margin-bottom: 2px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1f2937;
   user-select: none;
-  width: 100px;
+  width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
 `;
 
 const Description = styled('p')`
   display: block;
-  font-size: 8pt;
-  color: #777;
-  margin-up: 4px;
-  margin-bottom: 4px;
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 2px;
+  margin-bottom: 2px;
   user-select: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const Hint = styled('span')`
+  font-size: 11px;
+  color: #9ca3af;
 `;
 
 const TitleInput = styled(Input)`
-  margin-top: 4px;
-  margin-bottom: 4px;
-  font-size: 10pt;
+  margin-top: 2px;
+  margin-bottom: 2px;
+  font-size: 13px;
   user-select: none;
 `;
 
@@ -192,10 +243,30 @@ const CollectionCell: React.FunctionComponent<Props> = ({ collectionName }) => {
             />
           </Form.Item>
         ) : (
-          <Title>{draftName}</Title>
+          <HeaderRow>
+            <HeaderInfo>
+              <Title>{draftName}</Title>
+            </HeaderInfo>
+            <Actions>
+              <Tooltip title="New request">
+                <IconAction shape="circle" size="small" onClick={prevent(handleCreate)}>
+                  <PlusOutlined />
+                </IconAction>
+              </Tooltip>
+              <Tooltip title="More actions">
+                <IconAction
+                  shape="circle"
+                  size="small"
+                  onClick={prevent((): void => setMenuVisible(!menuVisible))}
+                >
+                  <EllipsisOutlined />
+                </IconAction>
+              </Tooltip>
+            </Actions>
+          </HeaderRow>
         )}
         <Description>
-          {collectionSize} {collectionSize === 1 ? 'entry' : 'entries'}
+          {collectionSize} {collectionSize === 1 ? 'request' : 'requests'} <Hint>• right-click for actions</Hint>
         </Description>
       </TableData>
     </Popover>

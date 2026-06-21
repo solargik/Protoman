@@ -12,11 +12,18 @@ import { openFM } from './Collection/CollectionActions';
 const TopLayout = styled(Layout)`
   width: 100%;
   height: 100%;
+  overflow: hidden;
 `;
 
 const ContentLayout = styled(Layout)`
   height: 100%;
-  padding: 16px;
+  padding: 20px;
+  overflow: hidden;
+`;
+
+const MainContent = styled('div')`
+  height: 100%;
+  overflow: auto;
 `;
 
 const App: React.FunctionComponent<unknown> = ({}) => {
@@ -37,7 +44,9 @@ const App: React.FunctionComponent<unknown> = ({}) => {
       <CollectionSider />
       <ContentLayout>
         <ToolBar />
-        <FlowView />
+        <MainContent>
+          <FlowView />
+        </MainContent>
       </ContentLayout>
     </TopLayout>
   );

@@ -14,4 +14,6 @@ export interface AppState {
 
   readonly currentCollection: string;
   readonly currentFlow: string;
+
+  readonly openFlowTabs: ReadonlyArray<[string, string]>;
 }
